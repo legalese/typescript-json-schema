@@ -208,7 +208,6 @@ var JsonSchemaGenerator = (function () {
             var _a;
             return (__assign({}, acc, (_a = {}, _a[word] = true, _a)));
         }, {});
-        console.error("userValidationKeywords = " + JSON.stringify(this.userValidationKeywords));
     }
     Object.defineProperty(JsonSchemaGenerator.prototype, "ReffedDefinitions", {
         get: function () {

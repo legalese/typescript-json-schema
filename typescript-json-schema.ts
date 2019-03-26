@@ -340,7 +340,6 @@ export class JsonSchemaGenerator {
       (acc, word) => ({ ...acc, [word]: true }),
       {}
     );
-    console.error(`userValidationKeywords = ${JSON.stringify(this.userValidationKeywords)}`);
   }
 
   public get ReffedDefinitions(): { [key: string]: Definition } {
