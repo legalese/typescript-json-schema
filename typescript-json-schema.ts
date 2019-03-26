@@ -479,7 +479,10 @@ export class JsonSchemaGenerator {
     }
 
     if (this.args.desctitles && definition.description && definition.description.length) {
-      definition.title = definition.description.split(/\n/)[0];
+      let description = definition.description.split(/\n/);
+      let head = description.splice(0, 1)[0];
+      definition.title = head;
+      definition.description = description.join("\n");
       //      console.error(`setting title to the first line of description: ${definition.title}`)
     }
 

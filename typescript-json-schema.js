@@ -343,7 +343,10 @@ var JsonSchemaGenerator = (function () {
             definition.title = propertyName;
         }
         if (this.args.desctitles && definition.description && definition.description.length) {
-            definition.title = definition.description.split(/\n/)[0];
+            var description = definition.description.split(/\n/);
+            var head = description.splice(0, 1)[0];
+            definition.title = head;
+            definition.description = description.join("\n");
         }
         if (definition.hasOwnProperty("ignore")) {
             return null;
