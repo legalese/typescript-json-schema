@@ -15,6 +15,8 @@ function run() {
         .describe("topRef", "Create a top-level ref definition.")
         .boolean("titles").default("titles", defaultArgs.titles)
         .describe("titles", "Creates titles in the output schema.")
+        .boolean("desctitles").default("desctitles", defaultArgs.desctitles)
+        .describe("desctitles", "As above, and uses the first line of description as title.")
         .boolean("defaultProps").default("defaultProps", defaultArgs.defaultProps)
         .describe("defaultProps", "Create default properties definitions.")
         .boolean("noExtraProps").default("noExtraProps", defaultArgs.noExtraProps)
@@ -49,6 +51,7 @@ function run() {
         aliasRef: args.aliasRefs,
         topRef: args.topRef,
         titles: args.titles,
+        desctitles: args.desctitles,
         defaultProps: args.defaultProps,
         noExtraProps: args.noExtraProps,
         propOrder: args.propOrder,

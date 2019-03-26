@@ -344,7 +344,6 @@ var JsonSchemaGenerator = (function () {
         }
         if (this.args.desctitles && definition.description && definition.description.length) {
             definition.title = definition.description.split(/\n/)[0];
-            console.error("setting title to the first line of description: " + definition.title);
         }
         if (definition.hasOwnProperty("ignore")) {
             return null;
@@ -733,7 +732,6 @@ var JsonSchemaGenerator = (function () {
                 }
                 this.reffedDefinitions[fullTypeName] = reffedDefinition;
                 if (this.args.titles && fullTypeName) {
-                    console.error("setting definition.title (previously " + definition.title + " to fullTypeName " + fullTypeName);
                     definition.title = fullTypeName;
                 }
             }
