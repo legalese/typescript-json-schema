@@ -27,6 +27,7 @@ function getDefaultArgs() {
         aliasRef: false,
         topRef: false,
         titles: false,
+        desctitles: true,
         defaultProps: false,
         noExtraProps: false,
         propOrder: false,
@@ -340,6 +341,10 @@ var JsonSchemaGenerator = (function () {
         var definition = this.getTypeDefinition(propertyType, undefined, undefined, prop, reffedType);
         if (this.args.titles) {
             definition.title = propertyName;
+        }
+        if (this.args.desctitles && definition.description && definition.description.length) {
+            definition.title = definition.description.split(/\n/)[0];
+            console.error("setting title to the first line of description: " + definition.title);
         }
         if (definition.hasOwnProperty("ignore")) {
             return null;
@@ -728,6 +733,7 @@ var JsonSchemaGenerator = (function () {
                 }
                 this.reffedDefinitions[fullTypeName] = reffedDefinition;
                 if (this.args.titles && fullTypeName) {
+                    console.error("setting definition.title (previously " + definition.title + " to fullTypeName " + fullTypeName);
                     definition.title = fullTypeName;
                 }
             }
@@ -975,7 +981,11 @@ function programFromConfig(configFileName, onlyIncludeFiles) {
     delete options.outFile;
     delete options.declaration;
     delete options.declarationMap;
-    var program = ts.createProgram(onlyIncludeFiles || configParseResult.fileNames, options);
+    var program = ts.createProgram({
+        rootNames: onlyIncludeFiles || configParseResult.fileNames,
+        options: options,
+        projectReferences: configParseResult.projectReferences
+    });
     return program;
 }
 exports.programFromConfig = programFromConfig;

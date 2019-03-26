@@ -9,6 +9,7 @@ export declare type Args = {
     aliasRef: boolean;
     topRef: boolean;
     titles: boolean;
+    desctitles: boolean;
     defaultProps: boolean;
     noExtraProps: boolean;
     propOrder: boolean;
