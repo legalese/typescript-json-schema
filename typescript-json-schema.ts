@@ -358,7 +358,17 @@ export class JsonSchemaGenerator {
     const comments = symbol.getDocumentationComment(this.tc);
 
     if (comments.length) {
-      definition.description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n")).join("");
+      let description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n"))
+
+      if (this.args.desctitles) {
+        let head = description.splice(0, 1)[0];
+        definition.title = head;
+        // console.error(`setting title to the first line of description: ${definition.title}`)
+      }
+
+      if (description.length) {
+        definition.description = description.join("");
+      }
     }
 
     // jsdocs are separate from comments
@@ -476,14 +486,6 @@ export class JsonSchemaGenerator {
 
     if (this.args.titles) {
       definition.title = propertyName;
-    }
-
-    if (this.args.desctitles && definition.description && definition.description.length) {
-      let description = definition.description.split(/\n/);
-      let head = description.splice(0, 1)[0];
-      definition.title = head;
-      definition.description = description.join("\n");
-      //      console.error(`setting title to the first line of description: ${definition.title}`)
     }
 
     if (definition.hasOwnProperty("ignore")) {

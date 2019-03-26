@@ -223,7 +223,14 @@ var JsonSchemaGenerator = (function () {
         }
         var comments = symbol.getDocumentationComment(this.tc);
         if (comments.length) {
-            definition.description = comments.map(function (comment) { return comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n"); }).join("");
+            var description = comments.map(function (comment) { return comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n"); });
+            if (this.args.desctitles) {
+                var head = description.splice(0, 1)[0];
+                definition.title = head;
+            }
+            if (description.length) {
+                definition.description = description.join("");
+            }
         }
         var jsdocs = symbol.getJsDocTags();
         jsdocs.forEach(function (doc) {
@@ -341,12 +348,6 @@ var JsonSchemaGenerator = (function () {
         var definition = this.getTypeDefinition(propertyType, undefined, undefined, prop, reffedType);
         if (this.args.titles) {
             definition.title = propertyName;
-        }
-        if (this.args.desctitles && definition.description && definition.description.length) {
-            var description = definition.description.split(/\n/);
-            var head = description.splice(0, 1)[0];
-            definition.title = head;
-            definition.description = description.join("\n");
         }
         if (definition.hasOwnProperty("ignore")) {
             return null;
