@@ -340,6 +340,7 @@ export class JsonSchemaGenerator {
       (acc, word) => ({ ...acc, [word]: true }),
       {}
     );
+    console.error(`userValidationKeywords = ${JSON.stringify(this.userValidationKeywords)}`);
   }
 
   public get ReffedDefinitions(): { [key: string]: Definition } {
@@ -375,7 +376,13 @@ export class JsonSchemaGenerator {
     const jsdocs = symbol.getJsDocTags();
     jsdocs.forEach(doc => {
       // if we have @TJS-... annotations, we have to parse them
-      const [name, text] = (doc.name === "TJS" ? new RegExp(REGEX_TJS_JSDOC).exec(doc.text!)!.slice(1, 3) : [doc.name, doc.text]) as string[];
+      let [name, text] = (doc.name === "TJS" ? new RegExp(REGEX_TJS_JSDOC).exec(doc.text!)!.slice(1, 3) : [doc.name, doc.text]) as string[];
+      // maybe we were called with --validationKeywords=ui:title. but getJsDocTags parses that to name=ui, text=:title...
+      let uicolon = text.match(/^(:\S+) /);
+      if (uicolon) {
+        name = name + uicolon[1];
+        text = text.replace(/^:\S+ /, "")
+      }
       if (validationKeywords[name] || this.userValidationKeywords[name]) {
         definition[name] = text === undefined ? "" : parseValue(text);
       } else {

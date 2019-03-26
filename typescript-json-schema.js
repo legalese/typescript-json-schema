@@ -208,6 +208,7 @@ var JsonSchemaGenerator = (function () {
             var _a;
             return (__assign({}, acc, (_a = {}, _a[word] = true, _a)));
         }, {});
+        console.error("userValidationKeywords = " + JSON.stringify(this.userValidationKeywords));
     }
     Object.defineProperty(JsonSchemaGenerator.prototype, "ReffedDefinitions", {
         get: function () {
@@ -235,6 +236,11 @@ var JsonSchemaGenerator = (function () {
         var jsdocs = symbol.getJsDocTags();
         jsdocs.forEach(function (doc) {
             var _a = (doc.name === "TJS" ? new RegExp(REGEX_TJS_JSDOC).exec(doc.text).slice(1, 3) : [doc.name, doc.text]), name = _a[0], text = _a[1];
+            var uicolon = text.match(/^(:\S+) /);
+            if (uicolon) {
+                name = name + uicolon[1];
+                text = text.replace(/^:\S+ /, "");
+            }
             if (validationKeywords[name] || _this.userValidationKeywords[name]) {
                 definition[name] = text === undefined ? "" : parseValue(text);
             }
