@@ -223,7 +223,7 @@ var JsonSchemaGenerator = (function () {
         }
         var comments = symbol.getDocumentationComment(this.tc);
         if (comments.length) {
-            var description = comments.map(function (comment) { return comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n"); });
+            var description = comments.map(function (comment) { return comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n"); }).join("\n").split(/\n/);
             if (this.args.desctitles) {
                 var head = description.splice(0, 1)[0];
                 definition.title = head;

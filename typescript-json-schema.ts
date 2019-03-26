@@ -358,7 +358,7 @@ export class JsonSchemaGenerator {
     const comments = symbol.getDocumentationComment(this.tc);
 
     if (comments.length) {
-      let description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n"))
+      let description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n")).join("\n").split(/\n/)
 
       if (this.args.desctitles) {
         let head = description.splice(0, 1)[0];
