@@ -1,3 +1,9 @@
+# a Legalese fork
+
+this has been forked from the main repo to support a few things needed by leg-fostgres-node/schematemplates
+
+you'll see in leg-fostgres-node/package.json that we have a custom devDependencies for that.
+
 # typescript-json-schema
 
 [![npm version](https://img.shields.io/npm/v/typescript-json-schema.svg)](https://www.npmjs.com/package/typescript-json-schema) [![Build Status](https://travis-ci.org/YousefED/typescript-json-schema.svg?branch=master)](https://travis-ci.org/YousefED/typescript-json-schema)

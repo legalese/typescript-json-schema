@@ -356,7 +356,17 @@ export class JsonSchemaGenerator {
         const comments = symbol.getDocumentationComment(this.tc);
 
         if (comments.length) {
-            definition.description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n")).join("");
+      let description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n")).join("\n").split(/\n/)
+
+      if (this.args.desctitles) {
+        let head = description.splice(0, 1)[0];
+        definition.title = head;
+        // console.error(`setting title to the first line of description: ${definition.title}`)
+      }
+
+      if (description.length) {
+        definition.description = description.join("");
+      }
         }
 
         // jsdocs are separate from comments
@@ -422,7 +432,7 @@ export class JsonSchemaGenerator {
                 definition.type = "null";
             } else if (flags & ts.TypeFlags.Undefined) {
                 definition.type = "undefined";
-            } else if ((flags & ts.TypeFlags.Any) || (flags & ts.TypeFlags.Unknown)) {
+      } else if (flags & ts.TypeFlags.Any) {
                 // no type restriction, so that anything will match
             } else if (propertyTypeString === "Date" && !this.args.rejectDateType) {
                 definition.type = "string";
@@ -438,7 +448,7 @@ export class JsonSchemaGenerator {
                     definition.enum = [ value ];
                 } else if (arrayType !== undefined) {
                     if ((propertyType.flags & ts.TypeFlags.Object) &&
-                        ((propertyType as ts.ObjectType).objectFlags & (ts.ObjectFlags.Anonymous | ts.ObjectFlags.Interface | ts.ObjectFlags.Mapped))) {
+            ((propertyType as ts.ObjectType).objectFlags & (ts.ObjectFlags.Anonymous | ts.ObjectFlags.Interface))) {
                         definition.type = "object";
                         definition.additionalProperties = false;
                         definition.patternProperties = {
@@ -873,7 +883,7 @@ export class JsonSchemaGenerator {
 
         const symbol = typ.getSymbol();
         // FIXME: We can't just compare the name of the symbol - it ignores the namespace
-        const isRawType = (!symbol || this.tc.getFullyQualifiedName(symbol) === "Date" || symbol.name === "integer" || this.tc.getIndexInfoOfType(typ, ts.IndexKind.Number) !== undefined);
+    const isRawType = (!symbol || symbol.name === "Date" || symbol.name === "integer" || this.tc.getIndexInfoOfType(typ, ts.IndexKind.Number) !== undefined);
 
         // special case: an union where all child are string literals -> make an enum instead
         let isStringEnum = false;
@@ -928,13 +938,14 @@ export class JsonSchemaGenerator {
         if (!asRef || !this.reffedDefinitions[fullTypeName]) {
             if (asRef) { // must be here to prevent recursivity problems
                 let reffedDefinition: Definition;
-                if (asTypeAliasRef && reffedType && typ.symbol !== reffedType && symbol) {
+        if (asTypeAliasRef && reffedType!.getFlags() & (ts.TypeFlags.IndexedAccess | ts.TypeFlags.Index | ts.TypeFlags.Intersection) && symbol) {
                     reffedDefinition = this.getTypeDefinition(typ, true, undefined, symbol, symbol);
                 } else {
                     reffedDefinition = definition;
                 }
                 this.reffedDefinitions[fullTypeName] =  reffedDefinition;
                 if (this.args.titles && fullTypeName) {
+          //          console.error(`setting definition.title (previously ${definition.title} to fullTypeName ${fullTypeName}`);
                     definition.title = fullTypeName;
                 }
             }
