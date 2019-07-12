@@ -10,7 +10,7 @@ const vm = require("vm");
 
 const REGEX_FILE_NAME_OR_SPACE = /(\bimport\(".*?"\)|".*?")\.| /g;
 const REGEX_TSCONFIG_NAME = /^.*\.json$/;
-const REGEX_TJS_JSDOC = /^-([\w]+)\s+(\S|\S[\s\S]*\S)\s*$/g;
+const REGEX_TJS_JSDOC = /^-([:\w]+)\s+(\S|\S[\s\S]*\S)\s*$/g;
 const NUMERIC_INDEX_PATTERN = "^[0-9]+$";
 
 export function getDefaultArgs(): Args {
@@ -374,16 +374,26 @@ export class JsonSchemaGenerator {
     // jsdocs are separate from comments
     const jsdocs = symbol.getJsDocTags();
     jsdocs.forEach(doc => {
-      // if we have @TJS-... annotations, we have to parse them
+      // parse @TJS-... annotations.
+      // supported syntaxes are:
+      // @TJS-type string
+      // @TJS-potato foo bar baz      --validationKeywords=potato
+      // @TJS-ui:potato foobar        --validationKeywords=ui:*
       let [name, text] = (doc.name === "TJS" ? new RegExp(REGEX_TJS_JSDOC).exec(doc.text!)!.slice(1, 3) : [doc.name, doc.text]) as string[];
       // maybe we were called with --validationKeywords=ui:title. but getJsDocTags parses that to name=ui, text=:title...
-      let uicolon = text.match(/^(:\S+) /);
-      if (uicolon) {
-        name = name + uicolon[1];
-        text = text.replace(/^:\S+ /, "")
+      // console.error(`typescript-json-schema: initially, name=${name} and text=${text}`);
+      for (let globbies of Object.keys(this.userValidationKeywords).filter(n=>n.match(/\*|\?/))) {
+        let globregex = globbies.replace(/\*/g, ".*").replace(/\?/g, ".");
+        // console.error(`typescript-json-schema: the globregex is now ${globregex}`);
+        if (name.match(globregex)) {
+          // console.error(`typescript-json-schema: the globregex has matched the name ${name}, yay`);
+          definition[name] = text === undefined ? "" : parseValue(text);
+        }
       }
+
       if (validationKeywords[name] || this.userValidationKeywords[name]) {
         definition[name] = text === undefined ? "" : parseValue(text);
+        // console.error(`typescript-json-schema: set definition[${name}] = ${text}`);
       } else {
         // special annotations
         otherAnnotations[doc.name] = true;
