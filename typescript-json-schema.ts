@@ -10,7 +10,7 @@ const vm = require("vm");
 
 const REGEX_FILE_NAME_OR_SPACE = /(\bimport\(".*?"\)|".*?")\.| /g;
 const REGEX_TSCONFIG_NAME = /^.*\.json$/;
-const REGEX_TJS_JSDOC = /^-([\w]+)\s+(\S|\S[\s\S]*\S)\s*$/g;
+const REGEX_TJS_JSDOC = /^-([:\w]+)\s+(\S|\S[\s\S]*\S)\s*$/g;
 const NUMERIC_INDEX_PATTERN = "^[0-9]+$";
 
 export function getDefaultArgs(): Args {
@@ -19,6 +19,7 @@ export function getDefaultArgs(): Args {
         aliasRef: false,
         topRef: false,
         titles: false,
+        desctitles: false,
         defaultProps: false,
         noExtraProps: false,
         propOrder: false,
@@ -45,6 +46,7 @@ export type Args = {
     aliasRef: boolean;
     topRef: boolean;
     titles: boolean;
+    desctitles: boolean;
     defaultProps: boolean;
     noExtraProps: boolean;
     propOrder: boolean;
@@ -276,7 +278,8 @@ const validationKeywords = {
     format: true,
     default: true,
     $ref: true,
-    id: true
+    id: true,
+    "ui:*": true                    // glob match @TJS-ui:anything
 };
 
 export class JsonSchemaGenerator {
@@ -347,7 +350,7 @@ export class JsonSchemaGenerator {
     /**
      * Parse the comments of a symbol into the definition and other annotations.
      */
-    private parseCommentsIntoDefinition(symbol: ts.Symbol, definition: {description?: string}, otherAnnotations: {}): void {
+    private parseCommentsIntoDefinition(symbol: ts.Symbol, definition: {title?: string, description?: string}, otherAnnotations: {}): void {
         if (!symbol) {
             return;
         }
@@ -356,7 +359,17 @@ export class JsonSchemaGenerator {
         const comments = symbol.getDocumentationComment(this.tc);
 
         if (comments.length) {
-            definition.description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n")).join("");
+            let description = comments.map(comment => comment.kind === "lineBreak" ? comment.text : comment.text.trim().replace(/\r\n/g, "\n")).join("\n").split(/\n/)
+
+            if (this.args.desctitles) {
+                let head = description.splice(0, 1)[0];
+                definition.title = head;
+              // console.error(`setting title to the first line of description: ${definition.title}`)
+            }
+
+            if (description.length) {
+                definition.description = description.join("\n");
+            }
         }
 
         // jsdocs are separate from comments
@@ -364,7 +377,14 @@ export class JsonSchemaGenerator {
         jsdocs.forEach(doc => {
             // if we have @TJS-... annotations, we have to parse them
             const [name, text] = (doc.name === "TJS" ? new RegExp(REGEX_TJS_JSDOC).exec(doc.text!)!.slice(1,3) : [doc.name, doc.text]) as string[];
-            if (validationKeywords[name] || this.userValidationKeywords[name]) {
+            if (validationKeywords[name] || this.userValidationKeywords[name]
+                || ((Object.keys(this.userValidationKeywords).concat(Object.keys(validationKeywords)))
+                    .filter(keyword=>keyword.match(/\*|\?/))
+                    .map(glob=>glob.replace(/\*/g, ".*")
+                                   .replace(/\?/g, "."))
+                    .filter(glob=>name.match(glob))
+                    .length)
+               ) {
                 definition[name] = text === undefined ? "" : parseValue(text);
             } else {
                 // special annotations
